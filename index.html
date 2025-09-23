@@ -62,7 +62,7 @@
             transform: scale(1.1);
             box-shadow: 0 0 25px #ff66ff, 0 0 40px #ff00ff;
         }
-        #lotingKnop:disabled {
+        #lotingKnop:disabled, #nieuwNummerKnop:disabled {
             background: #555;
             cursor: not-allowed;
             transform: scale(1);
@@ -224,6 +224,7 @@
             `;
             
             nieuwNummerKnop.style.display = 'inline-block';
+            nieuwNummerKnop.disabled = false; // Maak de knop weer actief voor de nieuwe ronde
         });
 
         // --- Event Listener voor de 'Nieuw Nummer' knop ---
@@ -235,6 +236,8 @@
             if (nummerElement) {
                 nummerElement.textContent = `zingen... '${gekozenNummerTekst}'`;
             }
+            
+            nieuwNummerKnop.disabled = true; // Deactiveer de knop na één keer klikken
         });
 
         // --- Start het laden van de data ---
