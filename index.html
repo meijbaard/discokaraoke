@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disco Karaoke Loterij</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+        body {
+            background-color: #120c18;
+            background-image: 
+                radial-gradient(circle at 20% 20%, #ff00ff44, transparent),
+                radial-gradient(circle at 80% 70%, #00ffff44, transparent),
+                radial-gradient(circle at 50% 90%, #ffff0033, transparent);
+            color: #ffffff;
+            font-family: 'Righteous', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #ff00ff;
+            box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff;
+            position: relative;
+            z-index: 10;
+        }
+        h1 {
+            font-size: 3em;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff00ff;
+            margin-bottom: 30px;
+        }
+        .knoppen-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        #lotingKnop, #nieuwNummerKnop {
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: 'Righteous', sans-serif;
+            font-size: 1.5em;
+            padding: 15px 30px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #000;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+        }
+        #lotingKnop {
+            background: linear-gradient(45deg, #ff00ff, #ff66ff);
+            box-shadow: 0 0 15px #ff00ff;
+        }
+        #lotingKnop:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px #ff66ff, 0 0 40px #ff00ff;
+        }
+        #lotingKnop:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: scale(1);
+            box-shadow: none;
+        }
+        #nieuwNummerKnop {
+            background: linear-gradient(45deg, #00ffff, #00aaff);
+            box-shadow: 0 0 15px #00ffff;
+        }
+        #nieuwNummerKnop:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px #00aaff, 0 0 40px #00ffff;
+        }
+        #status {
+            color: #ffff00;
+            margin: 20px 0;
+            font-size: 1.1em;
+            min-height: 25px;
+            line-height: 1.4;
+        }
+        #resultaat {
+            margin-top: 30px;
+            padding: 20px;
+            font-size: 2em;
+            min-height: 150px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed #ffff00;
+            border-radius: 15px;
+            word-break: break-word;
+        }
+        #resultaat .duo {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        #resultaat .nummer {
+            color: #ffff00;
+            font-size: 0.8em;
+            margin-top: 15px;
+        }
+        .disco-ball {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #aaaaaa, #555555);
+            border-radius: 50%;
+            position: absolute;
+            top: -50px;
+            left: calc(50% - 50px);
+            box-shadow: 0 0 30px #ffffff;
+            animation: spin 10s linear infinite;
+            z-index: 5;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2em; }
+            #lotingKnop, #nieuwNummerKnop { font-size: 1.2em; }
+            #resultaat { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="disco-ball"></div>
+
+    <div class="container">
+        <h1>Disco Karaoke Loterij</h1>
+        
+        <div id="status">Laden van nummers en deelnemers...</div>
+        
+        <div class="knoppen-container">
+            <button id="lotingKnop" disabled>SPIN THE DISCO BALL!</button>
+            <button id="nieuwNummerKnop" style="display: none;">NIEUW NUMMER!</button>
+        </div>
+
+        <div id="resultaat">
+            <!-- Hier komt het resultaat -->
+        </div>
+    </div>
+
+    <script>
+        // --- Globale variabelen voor de data ---
+        let deelnemersLijst = [];
+        let nummersLijst = [];
+        let huidigDuo = [];
+
+        // --- Configuratie ---
+        const GITHUB_GEBRUIKER = 'meijbaard';
+        const GITHUB_REPO = 'discokaraoke';
+        const DEELNEMERS_BESTAND = 'deelnemers.json';
+        const NUMMERS_BESTAND = 'nummers.json';
+
+        // --- URL's met "cache-buster" ---
+        const cacheBuster = `?v=${new Date().getTime()}`;
+        const deelnemersUrl = `https://raw.githubusercontent.com/${GITHUB_GEBRUIKER}/${GITHUB_REPO}/main/${DEELNEMERS_BESTAND}${cacheBuster}`;
+        const nummersUrl = `https://raw.githubusercontent.com/${GITHUB_GEBRUIKER}/${GITHUB_REPO}/main/${NUMMERS_BESTAND}${cacheBuster}`;
+        
+        // --- DOM Elementen ---
+        const lotingKnop = document.getElementById('lotingKnop');
+        const nieuwNummerKnop = document.getElementById('nieuwNummerKnop');
+        const statusDiv = document.getElementById('status');
+        const resultaatDiv = document.getElementById('resultaat');
+
+        // --- Functie om de JSON data te laden ---
+        async function laadData() {
+            try {
+                const [deelnemersResponse, nummersResponse] = await Promise.all([
+                    fetch(deelnemersUrl),
+                    fetch(nummersUrl)
+                ]);
+
+                if (!deelnemersResponse.ok) throw new Error(`Kon '${DEELNEMERS_BESTAND}' niet laden (status: ${deelnemersResponse.status}).`);
+                if (!nummersResponse.ok) throw new Error(`Kon '${NUMMERS_BESTAND}' niet laden (status: ${nummersResponse.status}).`);
+
+                const deelnemersData = await deelnemersResponse.json();
+                const nummersData = await nummersResponse.json();
+
+                deelnemersLijst = deelnemersData.map(p => p.naam);
+                nummersLijst = nummersData;
+
+                statusDiv.textContent = `Geladen: ${deelnemersLijst.length} deelnemers en ${nummersLijst.length} nummers. Ready to party!`;
+                lotingKnop.disabled = false;
+
+            } catch (error) {
+                let errorMessage = `<b>Fout bij laden:</b> ${error.message}<br>`;
+                errorMessage += `Controleer of de JSON-bestanden correct zijn en op de juiste locatie op GitHub staan.`;
+                statusDiv.innerHTML = errorMessage;
+                console.error(error);
+            }
+        }
+
+        // --- Functie om een willekeurig nummer te kiezen ---
+        function kiesNieuwNummer() {
+            if (nummersLijst.length < 1) return "Geen nummers gevonden";
+            const gekozenNummerObject = nummersLijst[Math.floor(Math.random() * nummersLijst.length)];
+            return `${gekozenNummerObject.titel} - ${gekozenNummerObject.artiest}`;
+        }
+
+        // --- Event Listener voor de hoofdloting ---
+        lotingKnop.addEventListener('click', () => {
+            if (deelnemersLijst.length < 2) {
+                alert("Voeg minimaal 2 deelnemers toe aan je deelnemers.json bestand!");
+                return;
+            }
+            
+            const geschuddeDeelnemers = [...deelnemersLijst].sort(() => 0.5 - Math.random());
+            huidigDuo = geschuddeDeelnemers.slice(0, 2);
+            
+            const gekozenNummerTekst = kiesNieuwNummer();
+
+            resultaatDiv.style.display = 'flex';
+            resultaatDiv.innerHTML = `
+                <div class="duo">${huidigDuo[0].toUpperCase()} & ${huidigDuo[1].toUpperCase()}</div>
+                <div class="nummer">zingen... '${gekozenNummerTekst}'</div>
+            `;
+            
+            nieuwNummerKnop.style.display = 'inline-block';
+        });
+
+        // --- Event Listener voor de 'Nieuw Nummer' knop ---
+        nieuwNummerKnop.addEventListener('click', () => {
+            if (huidigDuo.length < 2) return;
+
+            const gekozenNummerTekst = kiesNieuwNummer();
+            const nummerElement = resultaatDiv.querySelector('.nummer');
+            if (nummerElement) {
+                nummerElement.textContent = `zingen... '${gekozenNummerTekst}'`;
+            }
+        });
+
+        // --- Start het laden van de data ---
+        document.addEventListener('DOMContentLoaded', laadData);
+    </script>
+
+</body>
+</html>
+
