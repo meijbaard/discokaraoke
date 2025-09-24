@@ -4,6 +4,8 @@ Welkom bij de Disco Karaoke Loterij\! Dit is een eenvoudige webapplicatie die he
 
 De applicatie is live te bekijken op: **[disco.markeijbaard.nl](https://www.google.com/search?q=http://disco.markeijbaard.nl)**
 
+![Disco Karaoke Loterij Screenshot](https://raw.githubusercontent.com/meijbaard/discokaraoke/main/screenshot.png)
+
 ## ✨ Features
 
   - **Willekeurige Duo Loting**: Klik op de "SPIN THE DISCO BALL\!" knop om willekeurig twee deelnemers te selecteren.
