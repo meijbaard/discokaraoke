@@ -8,7 +8,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
         body {
             background-color: #120c18;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 20%, #ff00ff44, transparent),
                 radial-gradient(circle at 80% 70%, #00ffff44, transparent),
                 radial-gradient(circle at 50% 90%, #ffff0033, transparent);
@@ -143,8 +143,7 @@
         </div>
 
         <div id="resultaat">
-            <!-- Hier komt het resultaat -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -158,11 +157,21 @@
         const GITHUB_REPO = 'discokaraoke';
         const DEELNEMERS_BESTAND = 'deelnemers.json';
         const NUMMERS_BESTAND = 'nummers.json';
+        
+        // --- Bepaal de juiste URL's op basis van de omgeving ---
+        let deelnemersUrl;
+        let nummersUrl;
 
-        // --- URL's met "cache-buster" ---
-        const cacheBuster = `?v=${new Date().getTime()}`;
-        const deelnemersUrl = `https://raw.githubusercontent.com/${GITHUB_GEBRUIKER}/${GITHUB_REPO}/main/${DEELNEMERS_BESTAND}${cacheBuster}`;
-        const nummersUrl = `https://raw.githubusercontent.com/${GITHUB_GEBRUIKER}/${GITHUB_REPO}/main/${NUMMERS_BESTAND}${cacheBuster}`;
+        // Controleer of de pagina lokaal wordt geopend (file://) of via een lokale server.
+        if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            deelnemersUrl = DEELNEMERS_BESTAND;
+            nummersUrl = NUMMERS_BESTAND;
+        } else {
+            // Anders, gebruik de GitHub raw URL voor online gebruik (GitHub Pages).
+            const cacheBuster = `?v=${new Date().getTime()}`;
+            deelnemersUrl = `https://raw.githubusercontent.com/${GITHUB_GEBRUIKER}/${GITHUB_REPO}/main/${DEELNEMERS_BESTAND}${cacheBuster}`;
+            nummersUrl = `https://raw.githubusercontent.com/${GITHUB_GEBRUIKER}/${GITHUB_REPO}/main/${NUMMERS_BESTAND}${cacheBuster}`;
+        }
         
         // --- DOM Elementen ---
         const lotingKnop = document.getElementById('lotingKnop');
@@ -192,7 +201,7 @@
 
             } catch (error) {
                 let errorMessage = `<b>Fout bij laden:</b> ${error.message}<br>`;
-                errorMessage += `Controleer of de JSON-bestanden correct zijn en op de juiste locatie op GitHub staan.`;
+                errorMessage += `Controleer of de JSON-bestanden correct zijn en op de juiste locatie staan. Als je dit lokaal draait, moeten de .json-bestanden in dezelfde map staan als dit .html-bestand.`;
                 statusDiv.innerHTML = errorMessage;
                 console.error(error);
             }
@@ -246,4 +255,3 @@
 
 </body>
 </html>
-
